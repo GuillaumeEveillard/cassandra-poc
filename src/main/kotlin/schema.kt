@@ -1,6 +1,8 @@
 import java.math.BigDecimal
 import java.sql.Timestamp
 import java.time.Instant
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.contract
 import kotlin.random.Random
 
 interface Generator<T> {
@@ -23,12 +25,10 @@ fun timestampsPerDay(differentDay: Long, starting: Timestamp) : Generator<Timest
         ): Timestamp {
             return Timestamp.from(Instant.now())
         }
-
     }
 }
 
-
-fun schema(lambda: SchemaBuilder.() -> Unit): Schema = SchemaBuilder().apply(lambda).build()
+fun schema(init: SchemaBuilder.() -> Schema): Schema = SchemaBuilder().init()
 
 data class Schema(val keyspaceName: String, var tableName: String, val fields: Collection<Field<*>>) {
     override fun toString(): String {
@@ -36,14 +36,42 @@ data class Schema(val keyspaceName: String, var tableName: String, val fields: C
     }
 }
 
-data class SchemaBuilder(var keyspaceName: String? = null, var tableName: String? = null) {
-    private val fields = mutableListOf<Field<*>>()
+sealed class SchemaBuilder(var _keyspaceName: String? = null, var tableName: String? = null) {
+    val fields = mutableListOf<Field<*>>()
+    
+    interface Named
+
+    private class Impl : SchemaBuilder(), Named
+
+    companion object {
+        // This function invocation looks like constructor invocation
+        operator fun invoke(): SchemaBuilder = Impl()
+    }
 
     fun fields(puppiesList: FieldList.() -> Unit) {
         fields.addAll(FieldList().apply(puppiesList))
     }
 
-    fun build(): Schema = Schema(keyspaceName!!, tableName!!, fields.toList())
+    //fun build(): Schema = Schema(keyspaceName!!, tableName!!, fields.toList())
+}
+
+// This method can be called only if the builder has been named
+fun <S> S.build(): Schema where S : SchemaBuilder,S : SchemaBuilder.Named {
+  return Schema(keyspaceName, tableName!!, fields.toList())  
+} 
+
+// Extension property for <PersonBuilder & Named>
+val <S> S.keyspaceName where
+        S : SchemaBuilder,
+        S : SchemaBuilder.Named
+    get() = _keyspaceName!!
+
+@ExperimentalContracts
+fun SchemaBuilder.keyspaceName(keyspaceName: String) {
+    contract {
+        returns() implies (this@keyspaceName is SchemaBuilder.Named)
+    }
+    _keyspaceName = keyspaceName
 }
 
 class FieldList : ArrayList<Field<*>>() {
@@ -70,8 +98,9 @@ class Bigint : Type<Long>()
 class Decimal : Type<BigDecimal>()
 
 
+@ExperimentalContracts
 val test = schema {
-    keyspaceName = "keyspace 1"
+    this.keyspaceName("keyspace 1")
     tableName = "table 1"
     fields {
         field<Long> {
@@ -90,8 +119,10 @@ val test = schema {
             valueGenerator = randomLong
         }
     }
+    build()
 }
 
+@ExperimentalContracts
 fun main() {
     println(test)
 }
