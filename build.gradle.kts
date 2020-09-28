@@ -1,7 +1,5 @@
-import org.jetbrains.kotlin.backend.common.bridges.findInterfaceImplementation
-
 plugins {
-    kotlin("jvm") version "1.3.72"
+    kotlin("jvm") version "1.4.10"
 }
 
 group = "org.ggye"
