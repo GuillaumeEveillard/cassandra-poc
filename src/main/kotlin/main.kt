@@ -2,13 +2,16 @@ import com.datastax.driver.core.BatchStatement
 import com.datastax.driver.core.Cluster
 import java.math.BigDecimal
 import java.sql.Timestamp
-import java.util.*
 import java.util.concurrent.Executors
 import java.util.concurrent.ThreadLocalRandom
 import java.util.concurrent.TimeUnit
 
-val CREATE_SPACE = "create keyspace space1 with replication = {'class': 'SimpleStrategy', 'replication_factor': 2};"
-val CREATE_TABLE = """create table space1.table1
+/**
+ * Sandbox. The idea is to replace this code by something generic which uses the schema builder and the data generators
+ */
+
+const val CREATE_SPACE = "create keyspace space1 with replication = {'class': 'SimpleStrategy', 'replication_factor': 2};"
+const val CREATE_TABLE = """create table space1.table1
 (
     id bigint,
     chunk bigint,
@@ -25,8 +28,8 @@ val CREATE_TABLE = """create table space1.table1
     deci5 decimal,
     PRIMARY KEY((chunk), id)  
 )"""
-val INSERT_QUERY = "INSERT INTO space1.table1 (id, chunk, timestamp, int1, int2, int3, int4, int5, deci1, deci2, deci3, deci4, deci5) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-val CHUNK_SIZE = 10000L
+const val INSERT_QUERY = "INSERT INTO space1.table1 (id, chunk, timestamp, int1, int2, int3, int4, int5, deci1, deci2, deci3, deci4, deci5) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+const val CHUNK_SIZE = 10000L
 
 fun main() {
     val cluster = Cluster.builder().addContactPoint("localhost").withPort(9042).build();

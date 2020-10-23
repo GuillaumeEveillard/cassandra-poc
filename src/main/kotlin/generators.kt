@@ -22,8 +22,7 @@ fun timestampsPerDay(differentDay: Long, starting: Timestamp) : Generator<Timest
         ): Timestamp {
             val elementsPerDay = elementTotal / differentDay
             val day = elementNumber / elementsPerDay
-            return Timestamp.from(Instant.now())
+            return Timestamp.from(Instant.now()) //TODO to finish
         }
-
     }
 }
