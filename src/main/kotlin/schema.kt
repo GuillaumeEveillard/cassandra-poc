@@ -3,30 +3,6 @@ import java.sql.Timestamp
 import java.time.Instant
 import kotlin.random.Random
 
-interface Generator<T> {
-    fun produce(partitionNumber: Long, partitionTotal: Long, elementNumber: Long, elementTotal: Long) : T
-}
-
-val randomLong = object : Generator<Long> {
-    override fun produce(partitionNumber: Long, partitionTotal: Long, elementNumber: Long, elementTotal: Long): Long {
-        return Random(0).nextLong()
-    }
-}
-
-fun timestampsPerDay(differentDay: Long, starting: Timestamp) : Generator<Timestamp> {
-    return object : Generator<Timestamp> {
-        override fun produce(
-            partitionNumber: Long,
-            partitionTotal: Long,
-            elementNumber: Long,
-            elementTotal: Long
-        ): Timestamp {
-            return Timestamp.from(Instant.now())
-        }
-
-    }
-}
-
 
 fun schema(lambda: SchemaBuilder.() -> Unit): Schema = SchemaBuilder().apply(lambda).build()
 
@@ -55,9 +31,7 @@ class FieldList : ArrayList<Field<*>>() {
             add(Field<T>().apply(fieldLambda).apply { fieldName = "$fieldName-$i" })
         }
     }
-    
 }
-
 
 data class Field<T>(var fieldName: String? = null, var type: Type<T>? = null, var valueGenerator: Generator<T>? = null) {
     override fun toString(): String {
@@ -66,32 +40,5 @@ data class Field<T>(var fieldName: String? = null, var type: Type<T>? = null, va
 }
 
 sealed class Type<T>
-class Bigint : Type<Long>()
-class Decimal : Type<BigDecimal>()
-
-
-val test = schema {
-    keyspaceName = "keyspace 1"
-    tableName = "table 1"
-    fields {
-        field<Long> {
-            fieldName = "toto"
-            type = Bigint()
-            valueGenerator = randomLong
-        }
-        field<Long> {
-            fieldName = "tata"
-            type = Bigint()
-            valueGenerator = randomLong
-        }
-        multipleFields<Long>(2) {
-            fieldName = "auto"
-            type = Bigint()
-            valueGenerator = randomLong
-        }
-    }
-}
-
-fun main() {
-    println(test)
-}
+object Bigint : Type<Long>()
+object Decimal : Type<BigDecimal>()
